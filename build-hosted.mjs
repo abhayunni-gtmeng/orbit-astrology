@@ -1,0 +1,6 @@
+import {build} from 'esbuild';
+import {readFile} from 'node:fs/promises';
+const files={'/':'public/index.html','/calculations':'public/calculations.html','/calculations.mjs':'public/calculations.mjs','/app.mjs':'public/app.mjs','/birth.mjs':'public/birth.mjs','/result-sources.mjs':'public/result-sources.mjs','/style.css':'public/style.css','/detail.css':'public/detail.css','/shared/reading.mjs':'shared/reading.mjs','/shared/transits.mjs':'shared/transits.mjs','/situations-v1.png':'public/situations-v1.png'};
+const assets={};for(const [url,file] of Object.entries(files)){const binary=file.endsWith('.png');assets[url]={body:await readFile(file,binary?'base64':'utf8'),binary,type:binary?'image/png':file.endsWith('.html')?'text/html; charset=utf-8':file.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8'};}
+await build({entryPoints:['hosted-worker.mjs'],outfile:'dist/server/index.js',bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true,plugins:[{name:'orbit-assets',setup(b){b.onResolve({filter:/^orbit-assets$/},()=>({path:'assets',namespace:'orbit'}));b.onLoad({filter:/.*/,namespace:'orbit'},()=>({contents:'export default '+JSON.stringify(assets),loader:'js'}));}}]});
+console.log('Hosted Orbit built: dist/server/index.js');

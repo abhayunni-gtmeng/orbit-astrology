@@ -1,0 +1,1 @@
+{"name":"orbit-astrology","version":"0.1.0","private":true,"type":"module","scripts":{"dev":"node server.mjs","start":"node server.mjs","test":"node --test tests/*.test.mjs"},"engines":{"node":">=22"},"dependencies":{"@js-temporal/polyfill":"^0.5.1","astronomy-engine":"^2.1.19"},"devDependencies":{"esbuild":"^0.28.2"}}

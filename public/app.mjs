@@ -20,24 +20,28 @@ function renderFeature(){
 }
 renderFeature();
 function renderOutlook(){
- const outlook=weeklyOutlook(week),section=el('section',null,'weekly-outlook');section.append(el('h3','Your opportunities & heads-ups'),el('p',outlook.note,'field-note'));
+ const outlook=weeklyOutlook(week),section=el('section',null,'weekly-outlook');section.append(el('h3','Your week: good news & watch-outs'),el('p',outlook.note,'field-note'));
  const grid=el('div',null,'category-grid');
- for(const [key,label,title,items] of [['good','potential opportunities','Potential opportunities this week',outlook.opportunities],['bad','heads-up','Heads-up for this week',outlook.challenges]]){
-  const card=el('article',null,'category-card');
-  const button=el('button','Reveal '+label,'outlook-toggle');button.type='button';button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','outlook-'+key);
-  const content=el('div');content.id='outlook-'+key;content.hidden=true;content.append(el('h4',title));
-  button.addEventListener('click',()=>{content.hidden=!content.hidden;button.setAttribute('aria-expanded',String(!content.hidden));button.textContent=(content.hidden?'Reveal ':'Hide ')+label;});
-  card.append(button,content);
-  for(const item of items){content.append(el('strong',item.title),el('p',item.text));if(key==='bad'){content.append(el('strong','Avoid it','prescriptive-content'),el('p',item.avoid,'prescriptive-content'),el('strong','Manage it if it happens','prescriptive-content'),el('p',item.manage,'prescriptive-content'));}else{content.append(el('strong','Make the most of it','prescriptive-content'),el('p',item.action,'prescriptive-content'));}content.append(el('strong','Reflect','reflective-content'),el('p',item.reflection,'reflective-content'));const details=el('details');details.append(el('summary','Basis for this theme'),el('p',item.basis));content.append(details,resultSources(sky,item.title.match(/^\d{4}-\d{2}-\d{2}$/)?.[0]||item.basis.match(/^\d{4}-\d{2}-\d{2}/)?.[0]||week.days[0].date));}
+ for(const [key,label,title,items] of [['good','good news','Good news',outlook.opportunities],['bad','watch-outs','Bad news? What to watch for',outlook.challenges]]){
+  const card=el('article',null,'category-card outlook-'+key);
+  const heading=el('h4',title,'outlook-heading');heading.id='outlook-heading-'+key;card.setAttribute('aria-labelledby',heading.id);
+  const subtitle=el('p',key==='good'?'Opportunities to lean into':'Potential challenges to prepare for','outlook-subtitle');
+  const button=el('button','Show less','outlook-toggle');button.type='button';button.setAttribute('aria-expanded','true');button.setAttribute('aria-controls','outlook-'+key);button.setAttribute('aria-label','Show less '+label);
+  const content=el('div');content.id='outlook-'+key;
+  button.addEventListener('click',()=>{content.hidden=!content.hidden;button.setAttribute('aria-expanded',String(!content.hidden));button.textContent=content.hidden?'Show details':'Show less';button.setAttribute('aria-label',button.textContent+' '+label);});
+  card.append(heading,subtitle,content,button);
+  for(const item of items){content.append(el('h5',key==='bad'?fmt(item.title,{weekday:'long',month:'short',day:'numeric'}):item.title,'outlook-item-title'),el('p',item.text,'outlook-summary'));if(key==='bad'){content.append(el('strong','Avoid it','prescriptive-content'),el('p',item.avoid,'prescriptive-content'),el('strong','Manage it if it happens','prescriptive-content'),el('p',item.manage,'prescriptive-content'));}else{content.append(el('strong','Make the most of it','prescriptive-content'),el('p',item.action,'prescriptive-content'));}content.append(el('strong','Reflect','reflective-content'),el('p',item.reflection,'reflective-content'));const details=el('details');details.append(el('summary','Basis for this theme'),el('p',item.basis));content.append(details,resultSources(sky,item.title.match(/^\d{4}-\d{2}-\d{2}$/)?.[0]||item.basis.match(/^\d{4}-\d{2}-\d{2}/)?.[0]||week.days[0].date));}
   grid.append(card);
  }section.append(grid);return section;
 }
+function renderLifeSections(){
+ const categories=el('section',null,'life-sections');categories.setAttribute('aria-label','Your life this week');categories.append(el('h3','Your life this week'));const grid=el('div',null,'category-grid');const order=['Social','Growth','Personal','Work & money','Energy & wellbeing'];for(const title of order){const item=week.categories.find(c=>c.title===title);if(!item)continue;const card=el('article',null,'category-card');card.append(el('h4',item.title,'life-section-title'),el('p',item.headline,'life-section-theme'),el('p',item.text,'reflective-content'),el('strong','Put it into practice','prescriptive-content'),el('p',item.action,'prescriptive-content'),el('strong','Reflect on it','reflective-content'),el('p',item.question,'reflective-content'),el('strong','Keep in mind'),el('p',item.caution));const details=el('details');details.append(el('summary','Why this theme?'),el('p',item.basis));card.append(details,resultSources(sky,item.basis.match(/^\d{4}-\d{2}-\d{2}/)?.[0]||week.days[0].date));grid.append(card);}categories.append(grid);return categories;
+}
 function renderWeek(){
- weekly.replaceChildren();weekly.hidden=false;weekly.append(renderOutlook());if(week.natal)weekly.append(renderNatal(week,sky));
+ weekly.replaceChildren();weekly.hidden=false;weekly.append(renderOutlook(),renderLifeSections());if(week.natal)weekly.append(renderNatal(week,sky));
  const scene=el('figure',null,'situation-figure');const illustration=el('img');illustration.src='/situations-v1.png';illustration.alt='AI illustration of journaling, friends talking over tea, and creative planning.';illustration.loading='lazy';scene.append(illustration,el('figcaption','Illustrated possibilities: reflection, connection and creative action. AI-generated artwork—not a prediction of events.'));weekly.append(scene);
  weekly.append(el('h3','The bigger picture'),el('p',week.overview,'weekly-overview reflective-content'));
  const arc=el('div',null,'week-arc');for(const item of week.milestones){const box=el('article');box.append(el('span',item.label,'eyebrow'),el('small',fmt(item.day.date,{weekday:'short',month:'short',day:'numeric'})),el('h4',item.day.title),el('p',item.day.tryThis,'prescriptive-content'),el('p',item.day.question,'reflective-content'));arc.append(box);}weekly.append(arc);
- const categories=el('div',null,'category-grid');for(const item of week.categories){const card=el('article',null,'category-card');card.append(el('span',item.title,'eyebrow'),el('h4',item.headline),el('p',item.text,'reflective-content'),el('strong','Put it into practice','prescriptive-content'),el('p',item.action,'prescriptive-content'),el('strong','Reflect on it','reflective-content'),el('p',item.question,'reflective-content'),el('strong','Keep in mind'),el('p',item.caution));const details=el('details');details.append(el('summary','Why this theme?'),el('p',item.basis));card.append(details,resultSources(sky,item.basis.match(/^\d{4}-\d{2}-\d{2}/)?.[0]||week.days[0].date));categories.append(card);}weekly.append(categories);
  const evidence=el('details',null,'evidence');evidence.append(el('summary','The sky behind this week'));
  evidence.append(el('p','These are angles between transiting planets, shared by everyone—not aspects to your birth chart. Major aspects use a fixed 3° tolerance in Orbit. Dates below are the closest daily samples in this seven-day window, not exact event times.'));
  for(const a of week.highlights)evidence.append(el('p',`${fmt(a.date,{month:'short',day:'numeric'})}: ${a.a} ${a.type} ${a.b} · ${a.separation.toFixed(1)}° separation · ${a.orb.toFixed(1)}° from exact.`));

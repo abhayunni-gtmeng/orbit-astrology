@@ -7,13 +7,6 @@ const $=id=>document.getElementById(id);let focus='Balance',reading=[],sky=null,
 function el(tag,text,className){const node=document.createElement(tag);if(text)node.textContent=text;if(className)node.className=className;return node;}
 const weekly=document.createElement('section');weekly.id='weekly-detail';weekly.hidden=true;document.querySelector('.feature').after(weekly);
 const dayDetail=document.createElement('section');dayDetail.id='day-detail';dayDetail.hidden=true;$('daily').after(dayDetail);
-const modeBar=el('div',null,'reading-modes');modeBar.setAttribute('role','group');modeBar.setAttribute('aria-label','Reading style');
-for(const [value,label] of [['reflective','Reflective'],['prescriptive','Prescriptive'],['both','Both']]){
- const button=el('button',label);button.type='button';button.dataset.mode=value;button.setAttribute('aria-pressed',String(value===viewMode));
- button.addEventListener('click',()=>{viewMode=value;document.querySelector('.reading').dataset.mode=value;for(const b of modeBar.querySelectorAll('button'))b.setAttribute('aria-pressed',String(b===button));$('mode-description').textContent=value==='reflective'?'Reflective: explore meanings and questions.':value==='prescriptive'?'Prescriptive: practical actions and cautions.':'Both: practical actions alongside reflection.';renderFeature();});modeBar.append(button);
-}
-document.querySelector('.feature').before(modeBar);
-const modeDescription=el('p','Both: practical actions alongside reflection.','field-note');modeDescription.id='mode-description';modeDescription.setAttribute('role','status');modeBar.after(modeDescription);
 function renderFeature(){
  const content=featureCopy(viewMode,reading[active]);
  $('theme-label').textContent=content.label;$('theme-title').textContent=content.title;$('theme-copy').textContent=content.copy;
@@ -26,8 +19,8 @@ function renderOutlook(){
   const card=el('article',null,'category-card outlook-'+key);
   const heading=el('h4',title,'outlook-heading');heading.id='outlook-heading-'+key;card.setAttribute('aria-labelledby',heading.id);
   const subtitle=el('p',key==='good'?'Opportunities to lean into':'Potential challenges to prepare for','outlook-subtitle');
-  const button=el('button','Show less','outlook-toggle');button.type='button';button.setAttribute('aria-expanded','true');button.setAttribute('aria-controls','outlook-'+key);button.setAttribute('aria-label','Show less '+label);
-  const content=el('div');content.id='outlook-'+key;
+  const button=el('button','Show details','outlook-toggle');button.type='button';button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','outlook-'+key);button.setAttribute('aria-label','Show details '+label);
+  const content=el('div');content.id='outlook-'+key;content.hidden=true;
   button.addEventListener('click',()=>{content.hidden=!content.hidden;button.setAttribute('aria-expanded',String(!content.hidden));button.textContent=content.hidden?'Show details':'Show less';button.setAttribute('aria-label',button.textContent+' '+label);});
   card.append(heading,subtitle,content,button);
   for(const item of items){content.append(el('h5',key==='bad'?fmt(item.title,{weekday:'long',month:'short',day:'numeric'}):item.title,'outlook-item-title'),el('p',item.text,'outlook-summary'));if(key==='bad'){content.append(el('strong','Avoid it','prescriptive-content'),el('p',item.avoid,'prescriptive-content'),el('strong','Manage it if it happens','prescriptive-content'),el('p',item.manage,'prescriptive-content'));}else{content.append(el('strong','Make the most of it','prescriptive-content'),el('p',item.action,'prescriptive-content'));}content.append(el('strong','Reflect','reflective-content'),el('p',item.reflection,'reflective-content'));const details=el('details');details.append(el('summary','Basis for this theme'),el('p',item.basis));content.append(details,resultSources(sky,item.title.match(/^\d{4}-\d{2}-\d{2}$/)?.[0]||item.basis.match(/^\d{4}-\d{2}-\d{2}/)?.[0]||week.days[0].date));}

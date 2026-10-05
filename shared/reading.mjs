@@ -109,3 +109,52 @@ export function makeWeek(sign,sky,focus='Balance'){
  const highlights=[...closest.values()].sort((a,b)=>a.orb-b.orb).slice(0,4);
  return {overview,categories,milestones,highlights,days,focus};
 }
+
+// Orbit's editorial interpretations are separate from astronomical calculations.
+const natalStyles={
+ Aries:{style:'direct, energetic and willing to initiate',need:'freedom to act and try things for yourself',strength:'courage and initiative',edge:'moving faster than others can follow'},
+ Taurus:{style:'steady, sensory and patient',need:'reliability, comfort and time to settle',strength:'persistence and a grounding presence',edge:'holding on after a situation has changed'},
+ Gemini:{style:'curious, adaptable and conversational',need:'variety, conversation and room to explore',strength:'connecting ideas and seeing alternatives',edge:'scattering your attention across too many possibilities'},
+ Cancer:{style:'protective, receptive and attentive to belonging',need:'emotional safety and trusted connections',strength:'care and sensitivity to the atmosphere around you',edge:'retreating instead of stating what you need'},
+ Leo:{style:'warm, expressive and creatively confident',need:'genuine appreciation and room for self-expression',strength:'generosity and the ability to encourage others',edge:'letting recognition become the measure of your worth'},
+ Virgo:{style:'observant, practical and attentive to detail',need:'useful routines and a sense of making things better',strength:'discernment and thoughtful problem-solving',edge:'expecting perfection from yourself or others'},
+ Libra:{style:'considerate, collaborative and sensitive to balance',need:'fairness, companionship and room to weigh options',strength:'diplomacy and seeing another point of view',edge:'delaying a choice to keep everyone comfortable'},
+ Scorpio:{style:'focused, private and drawn to depth',need:'trust, honesty and meaningful connection',strength:'commitment and willingness to face difficult feelings',edge:'protecting yourself so tightly that others cannot reach you'},
+ Sagittarius:{style:'open, exploratory and drawn to possibility',need:'freedom, learning and a sense of direction',strength:'optimism and the ability to see the bigger picture',edge:'promising more than you can realistically sustain'},
+ Capricorn:{style:'deliberate, responsible and oriented toward progress',need:'clear commitments and something worthwhile to build',strength:'patience and dependable follow-through',edge:'measuring yourself only by what you achieve'},
+ Aquarius:{style:'independent, inventive and interested in the collective',need:'intellectual freedom and connection around shared ideas',strength:'originality and questioning outdated assumptions',edge:'staying with an idea when a feeling needs attention'},
+ Pisces:{style:'imaginative, compassionate and receptive',need:'space to dream, recover and feel connected',strength:'empathy and creative imagination',edge:'absorbing others’ needs without protecting your own limits'}
+};
+const natalRoles={
+ Sun:['Identity & motivation','Your Sun symbolizes the qualities you grow into and what gives you a sense of purpose.','Your sense of identity may be'],
+ Moon:['Emotional needs','Your Moon symbolizes instinctive reactions, comfort and the way you nurture yourself.','Your emotional responses may be'],
+ Rising:['First impressions & approach','Your rising sign is the zodiac sign on the eastern horizon at birth. It symbolizes how you enter new situations and the approach others may notice first.','Your outward approach may be'],
+ Mercury:['Thinking & communication','Mercury symbolizes how you process ideas, learn and express yourself.','Your communication style may be'],
+ Venus:['Affection & values','Venus symbolizes what you appreciate and how you express affection and seek connection.','Your way of connecting may be'],
+ Mars:['Drive & assertion','Mars symbolizes how you pursue what you want, take initiative and handle friction.','Your way of taking action may be'],
+ Jupiter:['Growth & perspective','Jupiter symbolizes exploration, meaning and the ways you seek to expand your world.','Your approach to growth may be'],
+ Saturn:['Commitment & boundaries','Saturn symbolizes structure, responsibility and skills developed through practice.','Your approach to commitment may be'],
+ Uranus:['Change & independence','Uranus symbolizes experimentation and departures from established patterns.','Your approach to change may be'],
+ Neptune:['Imagination & ideals','Neptune symbolizes imagination, ideals and the search for connection beyond the everyday.','Your imaginative style may be'],
+ Pluto:['Depth & transformation','Pluto symbolizes themes of power, letting go and deep renewal.','Your approach to deep change may be']
+};
+const natalHouseThemes=['self-expression and first impressions','personal resources and values','learning and everyday communication','home, roots and private life','creativity, play and self-expression','daily routines, service and wellbeing','one-to-one relationships and partnership','shared resources, trust and vulnerability','study, exploration and worldview','public contribution and long-term direction','friendships, communities and shared hopes','solitude, rest and inner reflection'];
+export function explainNatal(chart){
+ if(!chart)return null;
+ const points=[...chart.planets,{name:'Rising',...chart.ascendant}];
+ const placements=points.map(p=>{
+  const traits=natalStyles[p.sign],role=natalRoles[p.name];
+  const house=p.house?`Whole-sign house ${p.house} places this theme in ${natalHouseThemes[p.house-1]}.`:'';
+  const generational=['Uranus','Neptune','Pluto'].includes(p.name)?' This slow-moving planet’s sign is shared by many people in a generation; its house adds context to your chart.':'';
+  return {name:p.name,sign:p.sign,house:p.house,title:`${p.name} in ${p.sign}`,label:role[0],meaning:role[1],text:`${role[2]} ${traits.style}. ${house}${generational}`.trim(),strength:`A potential strength: ${traits.strength}.`,growth:`A pattern to notice: ${traits.edge}.`,need:`You may value ${traits.need}.`};
+ });
+ const sun=placements.find(p=>p.name==='Sun'),moon=placements.find(p=>p.name==='Moon'),rising=placements.find(p=>p.name==='Rising');
+ const s=natalStyles[sun.sign],m=natalStyles[moon.sign],r=natalStyles[rising.sign];
+ const summary=`Your ${sun.sign} Sun suggests a core style that is ${s.style}. Your ${moon.sign} Moon adds an emotional need for ${m.need}. With ${rising.sign} rising, you may meet new situations in a way that feels ${r.style}.`;
+ const synthesis=sun.sign===moon.sign&&moon.sign===rising.sign?`All three share ${sun.sign}, emphasizing a similar symbolic style across identity, emotional needs and outward approach. The other placements add different shades to this picture.`:`These parts can express themselves differently: the first impression you make may differ from what helps you feel secure or what gives you purpose. Read them together, and notice which descriptions fit your actual experience.`;
+ return {title:'Your personality, through your chart',note:'An astrological portrait for reflection, not a scientifically validated personality assessment. These are possibilities to explore, not fixed traits.',summary,synthesis,guide:'A birth chart is a snapshot of the sky at your birth. Planets describe symbolic themes, signs describe how those themes may be expressed, and houses describe areas of life. Orbit uses the tropical zodiac and whole-sign houses, with the rising sign as the first house.',bigThree:[sun,moon,rising],placements:placements.filter(p=>!['Sun','Moon','Rising'].includes(p.name)),question:`Where does ${s.strength} show up in your life, and what helps you make room for ${m.need}?`};
+}
+export function natalExplanationText(chart){
+ const p=explainNatal(chart);if(!p)return '';
+ return [p.title,p.note,p.guide,p.summary,p.synthesis,...[...p.bigThree,...p.placements].map(x=>[x.title+' — '+x.label,x.meaning,x.text,x.need,x.strength,x.growth].join('\n')),'Reflect: '+p.question].join('\n\n');
+}

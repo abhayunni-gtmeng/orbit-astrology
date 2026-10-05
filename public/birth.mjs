@@ -1,3 +1,4 @@
+import {explainNatal} from '/shared/reading.mjs';
 import {resultSources} from '/result-sources.mjs';
 const $=id=>document.getElementById(id);
 const node=(tag,text)=>{const e=document.createElement(tag);e.textContent=text;return e;};
@@ -26,7 +27,14 @@ export async function requestNatal(){
 }
 export function renderNatal(week,sky){
  const chart=week.natal,section=node('section','');section.className='natal-card';section.append(node('h3','Your birth chart'),node('p',chart.system));
- const trio=node('div','');trio.className='week-arc';for(const p of [chart.planets[0],chart.planets[1],{name:'Rising',sign:chart.ascendant.sign,longitude:chart.ascendant.longitude}]){const card=node('article','');card.append(node('small',p.name),node('h4',p.sign),node('p',`${(p.longitude%30).toFixed(1)}° within sign`));trio.append(card);}section.append(trio);
+ const portrait=explainNatal(chart);
+ const intro=node('section','');intro.className='natal-personality';intro.setAttribute('aria-label',portrait.title);
+ intro.append(node('h4',portrait.title),node('p',portrait.note),node('p',portrait.summary),node('p',portrait.synthesis));
+ const guide=node('details','');guide.append(node('summary','How to read your birth chart'),node('p',portrait.guide));intro.append(guide);
+ const trio=node('div','');trio.className='week-arc';
+ for(const p of portrait.bigThree){const card=node('article','');card.append(node('small',p.label),node('h4',p.title),node('p',p.meaning),node('p',p.text),node('p',p.need),node('p',p.strength),node('p',p.growth));trio.append(card);}intro.append(trio);
+ const others=node('details','');others.className='natal-interpretations';others.append(node('summary','Explore your other placements · communication, love, drive & more'));
+ for(const p of portrait.placements){const card=node('article','');card.append(node('h4',p.title+' · house '+p.house),node('small',p.label),node('p',p.meaning),node('p',p.text),node('p',p.strength),node('p',p.growth));others.append(card);}intro.append(others,node('p','Reflect: '+portrait.question));section.append(intro);
  const details=node('details','');details.append(node('summary','All natal placements & calculation details'));for(const p of chart.planets)details.append(node('p',`${p.name}: ${p.sign} ${(p.longitude%30).toFixed(1)}° · house ${p.house}`));details.append(node('p',`Birth instant: ${chart.utc} · ${chart.timezone} (${chart.offset}). ${chart.source}. ${chart.precision}`),node('p','House signs: '+chart.houses.map(h=>`${h.number} ${h.sign}`).join(' · ')));section.append(details,node('h4','Personal contacts this week'));
  for(const t of week.contacts){const card=node('article','');card.append(node('strong',`${t.date} · ${t.title}`),node('p',t.text),node('small',t.basis),resultSources(sky,t.date,[t.planet]));section.append(card);}
  if(!week.contacts.length)section.append(node('p','No personal contacts available within 3° in the weekly snapshots.'));

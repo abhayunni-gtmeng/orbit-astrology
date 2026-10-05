@@ -48,3 +48,19 @@ test('personal contacts use natal points, exact 3 degree orb and graceful unavai
  const sky={status:'unavailable',days:Array.from({length:7},()=>({date:'2026-10-04',positions:[]}))},week=makeWeek('Capricorn',sky);
  assert.equal(personalizeWeek(week,sky,null),week);assert.equal(personalizeWeek(week,sky,natal).contacts.length,0);
 });
+
+import {explainNatal,natalExplanationText} from '../shared/reading.mjs';
+test('personality follows calculated placements and remains separate from weekly data',()=>{
+ const chart=calculateNatal(input),portrait=explainNatal(chart);
+ assert.equal(portrait.bigThree[0].sign,chart.planets.find(p=>p.name==='Sun').sign);
+ assert.equal(portrait.bigThree[1].sign,chart.planets.find(p=>p.name==='Moon').sign);
+ assert.equal(portrait.bigThree[2].sign,chart.ascendant.sign);
+ assert.equal(portrait.placements.length,8);
+ const later=calculateNatal({...input,time:'18:00'});
+ assert.notEqual(explainNatal(later).summary,portrait.summary);
+ for(const p of portrait.placements)assert.ok(p.text.includes(`house ${p.house}`));
+ assert.ok(portrait.placements.find(p=>p.name==='Pluto').text.includes('generation'));
+ assert.ok(natalExplanationText(chart).includes(portrait.summary));
+ assert.ok(natalExplanationText(chart).includes('Mars in '+chart.planets.find(p=>p.name==='Mars').sign));
+ assert.equal(explainNatal(null),null);assert.equal(natalExplanationText(null),'');
+});

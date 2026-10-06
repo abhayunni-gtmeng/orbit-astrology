@@ -40,6 +40,35 @@ const challengeThemes=[
  ['Being available to everyone could leave no room for you','Too many invitations or group commitments can turn connection into obligation. Watch for accepting another role before checking your capacity.'],
  ['Pushing through could make a simple task feel harder','Ignoring your need for a pause can turn unfinished work into self-criticism. A temporary reset may be more useful than another round of forcing progress.']
 ];
+// Speculative event-style astrology copy; positions do not establish that events will occur.
+const goodPredictions=[
+ ['A stalled personal plan could finally move','You may get the time or encouragement to begin something you have been putting off this week. A small first result could restore your confidence.'],
+ ['You could get back some time you thought was spoken for','A commitment may become simpler or take less effort than expected, leaving room for something you actually want to do.'],
+ ['An answer you have been waiting for may arrive','A message or conversation could clear up a misunderstanding and let a delayed task move forward.'],
+ ['A tense situation at home could ease','A practical problem may get sorted out, or a conversation with someone close could make your shared space feel calmer.'],
+ ['A creative effort could get an encouraging response','Something you make or share may spark interest. The response could give you a reason to keep developing it.'],
+ ['A recurring task could become much easier','You may find a simpler way through a job that has been draining your time, making the rest of your week feel more manageable.'],
+ ['Someone could meet you halfway','A one-to-one conversation may lead to a fairer arrangement or a shared plan that works better for both of you.'],
+ ['A shared responsibility could finally get sorted','You may reach a clearer agreement about who is doing what, taking some uncertainty out of a joint commitment.'],
+ ['A new idea could solve an old problem','Something you learn or hear this week may offer an approach you had not considered and get a stuck plan moving again.'],
+ ['Your work could reach a satisfying milestone','A project may move from ongoing effort to a concrete result. You could finish a piece of work that has been hanging over you.'],
+ ['A group plan could turn into something real','A friend or teammate may follow through on an idea you share, giving a joint activity the momentum it has been missing.'],
+ ['A difficult decision could become clearer','A quieter moment may help you recognize what you want to continue and what you are ready to leave behind.']
+];
+const badPredictions=[
+ ['A new plan could stall before it gets going','Competing priorities may interrupt something you are trying to start, leaving several loose ends and less progress than you wanted.'],
+ ['A last-minute request could eat into your free time','Something that initially sounds small may take more time or effort than expected, squeezing out a plan you were looking forward to.'],
+ ['A message could be taken the wrong way','A hurried exchange may cause a misunderstanding or an awkward disagreement that takes extra effort to put right.'],
+ ['A home commitment could disrupt your plans','A household request or an expectation from someone close may interfere with time you had set aside for yourself.'],
+ ['A creative plan could hit a frustrating delay','Revisions, second thoughts or a disappointing response may slow something you were excited to finish or share.'],
+ ['Extra tasks could crowd out your original plan','Routine demands may build up and leave less time for the work or rest you had intended to protect.'],
+ ['A disagreement could surface in a close relationship','Different expectations may become hard to ignore. A plan that seemed settled could need an uncomfortable conversation or a compromise.'],
+ ['An unclear agreement could cause friction','You and someone else may discover that you understood a shared commitment differently, creating avoidable frustration.'],
+ ['New information could send a plan back to the drawing board','An approach you were counting on may turn out to need another step, forcing you to reconsider how to proceed.'],
+ ['Someone else’s delay could hold up your progress','A missing answer or unfinished handover may prevent you from completing a task when you hoped to.'],
+ ['A group plan could become more demanding than expected','Other people may look to you to organise or finish more than you agreed to, making a social or team activity feel like extra work.'],
+ ['An unfinished issue could keep interrupting your focus','A decision you have put off may keep returning to mind, making it harder to settle into the work or downtime you had planned.']
+];
 function weeklyOpportunities(week){
  const personal=week.days.flatMap(d=>d.transits||[]).filter(t=>['sextile','trine'].includes(t.type)).sort((a,b)=>a.orb-b.orb).map(t=>({sector:t.house-1,date:t.date,planet:t.planet,basis:`${t.date}: ${t.title}; whole-sign house ${t.house}. ${t.basis} Selected as a traditionally supportive aspect, not evidence of a future event.`}));
  const preferred={'Work':'Mercury','Social relationships':'Venus','Growth':'Mars','Balance':'Sun'}[week.focus]||'Sun';
@@ -47,7 +76,7 @@ function weeklyOpportunities(week){
  const chosen=[];const seen=new Set();
  for(const candidate of [...personal,...general]){if(seen.has(candidate.sector))continue;seen.add(candidate.sector);chosen.push(candidate);if(chosen.length===2)break;}
  if(!chosen.length){const index=signs.indexOf(week.sign);for(const sector of [Math.max(index,0),(Math.max(index,0)+4)%12])chosen.push({sector,date:week.days[0].date,basis:`General ${week.sign||'sign-based'} editorial prompt; relevant sky data unavailable. This is not a calculated transit or a timed opportunity.`});}
- return chosen.map(c=>{const [title,text]=opportunityThemes[c.sector];return {...c,title,text,action:practicalGuidance(c.sector).tryThis,reflection:areas[c.sector].question};});
+ return chosen.map(c=>{const [title,text]=goodPredictions[c.sector];return {...c,title,text,action:practicalGuidance(c.sector).tryThis,reflection:areas[c.sector].question};});
 }
 export function weeklyOutlook(week){
  const prevention=[
@@ -66,8 +95,8 @@ export function weeklyOutlook(week){
  ];
  return {
   opportunities:weeklyOpportunities(week),
-  challenges:[week.days[0],week.days[Math.floor(week.days.length/2)]].map(d=>{const index=areas.findIndex(a=>a.watch===d.watchFor);const sector=index<0?0:index;const [avoid,manage]=prevention[sector];const [title,text]=challengeThemes[sector];return {title,date:d.date,sector,text,avoid,manage,action:manage,reflection:areas[sector].question,basis:`${d.date}: ${d.source} Editorial caution, not a predicted event.`};}).filter((item,i,items)=>items.findIndex(x=>x.sector===item.sector)===i),
-  note:'Potential opportunities and practical heads-ups—not reports or predictions of good or bad events. Use what fits your actual situation.'
+  challenges:[week.days[0],week.days[Math.floor(week.days.length/2)]].map(d=>{const index=areas.findIndex(a=>a.watch===d.watchFor);const sector=index<0?0:index;const [avoid,manage]=prevention[sector];const [title,text]=badPredictions[sector];return {title,date:d.date,sector,text,avoid,manage,action:manage,reflection:areas[sector].question,basis:`${d.date}: ${d.source} Speculative astrology scenario; these positions do not establish that an event will occur.`};}).filter((item,i,items)=>items.findIndex(x=>x.sector===item.sector)===i),
+  note:'Speculative astrology predictions for entertainment—not scientifically validated forecasts. NASA data supports planetary positions, not these predicted events.'
  };
 }
 export const zodiac=longitude=>signs[Math.floor(((longitude%360)+360)%360/30)];

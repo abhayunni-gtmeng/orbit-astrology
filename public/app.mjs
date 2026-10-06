@@ -17,7 +17,7 @@ function renderBirthReading(){
 renderBirthReading();
 const leadingOutlook=el('section');leadingOutlook.id='leading-outlook';leadingOutlook.hidden=true;birthReading.before(leadingOutlook);
 const allSignsPanel=el('section');allSignsPanel.id='all-signs';document.querySelector('main').prepend(allSignsPanel);
-const initialAllSigns=el('details',null,'all-signs-panel');initialAllSigns.append(el('summary','All 12 signs this week · reveal opportunities & heads-ups'));
+const initialAllSigns=el('details',null,'all-signs-panel');initialAllSigns.append(el('summary','All 12 signs this week · reveal good news & bad news'));
 const allSignsStatus=el('p','Open to compare this week for every sign. No birth details needed.','all-signs-note');allSignsStatus.setAttribute('role','status');initialAllSigns.append(allSignsStatus);allSignsPanel.append(initialAllSigns);
 let allSignsLoading=false;
 initialAllSigns.addEventListener('toggle',async()=>{
@@ -35,12 +35,12 @@ function renderFeature(){
 }
 renderFeature();
 function renderOutlook(){
- const outlook=weeklyOutlook(week),section=el('section',null,'weekly-outlook');section.append(el('h3','Your week: good news & watch-outs'),el('p',outlook.note,'field-note'));
+ const outlook=weeklyOutlook(week),section=el('section',null,'weekly-outlook');section.append(el('h3','Your weekly predictions: good news & bad news'),el('p',outlook.note,'field-note'));
  const grid=el('div',null,'category-grid');
- for(const [key,label,title,items] of [['good','good news','Good news',outlook.opportunities],['bad','watch-outs','Bad news? What to watch for',outlook.challenges]]){
+ for(const [key,label,title,items] of [['good','good news','Good news',outlook.opportunities],['bad','bad news','Bad news',outlook.challenges]]){
   const card=el('article',null,'category-card outlook-'+key);
   const heading=el('h4',title,'outlook-heading');heading.id='outlook-heading-'+key;card.setAttribute('aria-labelledby',heading.id);
-  const subtitle=el('p',key==='good'?'Opportunities to lean into':'Potential challenges to prepare for','outlook-subtitle');
+  const subtitle=el('p',key==='good'?'Your positive predictions this week':'Your negative predictions this week','outlook-subtitle');
   const button=el('button','Show details','outlook-toggle');button.type='button';button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','outlook-'+key);button.setAttribute('aria-label','Show details '+label);
   const content=el('div');content.id='outlook-'+key;content.hidden=true;
   button.addEventListener('click',()=>{content.hidden=!content.hidden;button.setAttribute('aria-expanded',String(!content.hidden));button.textContent=content.hidden?'Show details':'Show less';button.setAttribute('aria-label',button.textContent+' '+label);});
@@ -51,16 +51,16 @@ function renderOutlook(){
 }
 function renderAllSigns(comparisonSky=sky,comparisonWeek=week){
  const panel=el('details',null,'all-signs-panel');panel.open=false;
- panel.append(el('summary','All 12 signs this week · reveal opportunities & heads-ups'));
- panel.append(el('p',`${fmt(comparisonWeek.days[0].date,{month:'short',day:'numeric'})} – ${fmt(comparisonWeek.days.at(-1).date,{month:'short',day:'numeric'})} · Focus: ${comparisonWeek.focus}. General sun-sign readings using the same weekly sky snapshots—not anyone’s personal birth chart. These are symbolic possibilities, not predictions.`,'all-signs-note'));
+ panel.append(el('summary','All 12 signs this week · reveal good news & bad news'));
+ panel.append(el('p',`${fmt(comparisonWeek.days[0].date,{month:'short',day:'numeric'})} – ${fmt(comparisonWeek.days.at(-1).date,{month:'short',day:'numeric'})} · Focus: ${comparisonWeek.focus}. General sun-sign astrology predictions, not personal birth-chart readings. Speculative entertainment, not scientifically validated forecasts. NASA data supports positions, not predicted events.`,'all-signs-note'));
  if(comparisonSky.status==='unavailable'||!comparisonSky.days.some(d=>d.positions.length))panel.append(el('p','Live sky data is unavailable. These are general editorial prompts, not transit-based readings.','all-signs-note'));
  const grid=el('div',null,'all-signs-grid');
  signs.forEach((sign,i)=>{
   const overview=weeklyOutlook(makeWeek(sign,comparisonSky,comparisonWeek.focus));const good=overview.opportunities[0],caution=overview.challenges[0];
   const card=el('article',null,'all-sign-card');card.setAttribute('aria-label',sign+' weekly overview');
   card.append(el('h3',`${symbols[i]} ${sign}${sign===comparisonWeek.sign?' · Selected sign':''}`));
-  const opportunity=el('div',null,'all-sign-opportunity');opportunity.append(el('span','OPPORTUNITY','all-sign-label'),el('h4',good.title),el('p',good.text),el('strong','Try this'),el('p',good.action));
-  const warning=el('div',null,'all-sign-warning');warning.append(el('span','HEADS-UP','all-sign-label'),el('h4',caution.title),el('p',caution.text),el('strong','Avoid it'),el('p',caution.avoid),el('strong','If it happens'),el('p',caution.manage));
+  const opportunity=el('div',null,'all-sign-opportunity');opportunity.append(el('span','GOOD NEWS','all-sign-label'),el('h4',good.title),el('p',good.text),el('strong','Make the most of it'),el('p',good.action));
+  const warning=el('div',null,'all-sign-warning');warning.append(el('span','BAD NEWS','all-sign-label'),el('h4',caution.title),el('p',caution.text),el('strong','Avoid it'),el('p',caution.avoid),el('strong','If it happens'),el('p',caution.manage));
   const basis=el('details',null,'all-sign-basis');basis.append(el('summary','Why these themes?'),el('p',good.basis),resultSources(comparisonSky,good.date),el('p',caution.basis),resultSources(comparisonSky,caution.date));
   card.append(opportunity,warning,basis);grid.append(card);
  });panel.append(grid);return panel;

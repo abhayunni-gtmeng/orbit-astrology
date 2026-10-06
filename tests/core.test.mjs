@@ -18,7 +18,7 @@ test('weekly outlook offers sourced opportunities and cautions even in fallback 
  assert.ok(outlook.challenges.every(c=>c.avoid&&c.manage&&c.avoid!==c.manage));
  assert.notEqual(outlook.opportunities[0].title,'Reconnect with someone');
  assert.ok([...outlook.opportunities,...outlook.challenges].every(x=>x.text&&x.action&&x.reflection&&x.basis));
- assert.ok(outlook.opportunities.every(x=>x.basis.includes('unavailable')));assert.ok(outlook.note.includes('not reports or predictions'));
+ assert.ok(outlook.opportunities.every(x=>x.basis.includes('unavailable')));assert.ok(outlook.note.includes('not scientifically validated'));
 });
 test('opportunities vary across all twelve signs and follow the sky, not random copy',()=>{
  const sky={days:Array.from({length:7},(_,i)=>({date:`2026-10-${10+i}`,positions:[{name:'Sun',longitude:190},{name:'Moon',longitude:100+i*14},{name:'Mercury',longitude:220}]}))};

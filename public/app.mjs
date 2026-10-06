@@ -5,6 +5,16 @@ import {resultSources} from '/result-sources.mjs';
 setupBirthForm();
 const $=id=>document.getElementById(id);let focus='Balance',reading=[],sky=null,active=0,week=null,viewMode='both';
 function el(tag,text,className){const node=document.createElement(tag);if(text)node.textContent=text;if(className)node.className=className;return node;}
+const birthReading=el('section',null,'birth-reading');birthReading.id='birth-chart';birthReading.setAttribute('aria-label','Your birth-chart reading');document.querySelector('.reading-heading').before(birthReading);
+function renderBirthReading(){
+ birthReading.replaceChildren();
+ if(week?.natal){birthReading.append(renderNatal(week,sky));return;}
+ const intro=el('article',null,'birth-chart-invitation');
+ intro.append(el('div','YOUR BIRTH CHART / YOUR PERSONAL BLUEPRINT','eyebrow'),el('h2','More than your star sign.'),el('p','Discover your Sun, Moon and rising sign—and what they symbolically suggest about your personality, emotional needs and how you meet the world.'));
+ const button=el('button','Read my birth chart ↗','primary');button.type='button';button.addEventListener('click',()=>{$('use-natal').checked=true;$('use-natal').dispatchEvent(new Event('change'));$('birth').focus();$('birth').scrollIntoView({block:'center',behavior:'smooth'});});
+ intro.append(button,el('p','Add your birth date, exact time and birthplace, then reveal your chart. No birth time? You can still explore your sun-sign week.','field-note'));birthReading.append(intro);
+}
+renderBirthReading();
 const weekly=document.createElement('section');weekly.id='weekly-detail';weekly.hidden=true;document.querySelector('.feature').after(weekly);
 const dayDetail=document.createElement('section');dayDetail.id='day-detail';dayDetail.hidden=true;$('daily').after(dayDetail);
 function renderFeature(){
@@ -31,7 +41,7 @@ function renderLifeSections(){
  const categories=el('section',null,'life-sections');categories.setAttribute('aria-label','Your life this week');categories.append(el('h3','Your life this week'));const grid=el('div',null,'category-grid');const order=['Social','Growth','Personal','Work & money','Energy & wellbeing'];for(const title of order){const item=week.categories.find(c=>c.title===title);if(!item)continue;const card=el('article',null,'category-card');card.append(el('h4',item.title,'life-section-title'),el('p',item.headline,'life-section-theme'),el('p',item.text,'reflective-content'),el('strong','Put it into practice','prescriptive-content'),el('p',item.action,'prescriptive-content'),el('strong','Reflect on it','reflective-content'),el('p',item.question,'reflective-content'),el('strong','Keep in mind'),el('p',item.caution));const details=el('details');details.append(el('summary','Why this theme?'),el('p',item.basis));card.append(details,resultSources(sky,item.basis.match(/^\d{4}-\d{2}-\d{2}/)?.[0]||week.days[0].date));grid.append(card);}categories.append(grid);return categories;
 }
 function renderWeek(){
- weekly.replaceChildren();weekly.hidden=false;weekly.append(renderOutlook(),renderLifeSections());if(week.natal)weekly.append(renderNatal(week,sky));
+ renderBirthReading();weekly.replaceChildren();weekly.hidden=false;weekly.append(renderOutlook(),renderLifeSections());
  const scene=el('figure',null,'situation-figure');const illustration=el('img');illustration.src='/situations-v1.png';illustration.alt='AI illustration of journaling, friends talking over tea, and creative planning.';illustration.loading='lazy';scene.append(illustration,el('figcaption','Illustrated possibilities: reflection, connection and creative action. AI-generated artwork—not a prediction of events.'));weekly.append(scene);
  weekly.append(el('h3','The bigger picture'),el('p',week.overview,'weekly-overview reflective-content'));
  const arc=el('div',null,'week-arc');for(const item of week.milestones){const box=el('article');box.append(el('span',item.label,'eyebrow'),el('small',fmt(item.day.date,{weekday:'short',month:'short',day:'numeric'})),el('h4',item.day.title),el('p',item.day.tryThis,'prescriptive-content'),el('p',item.day.question,'reflective-content'));arc.append(box);}weekly.append(arc);

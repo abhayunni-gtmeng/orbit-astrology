@@ -7,7 +7,7 @@ export function setupBirthForm(){
  $('birth-time-note').before(box);
  $('birth-time-note').textContent='Exact date, local birth time and birthplace calculate your rising sign and whole-sign houses. Unknown time uses a sun-sign reading, without inventing a rising sign. Supported birth years: 1900 onward; latitudes: 66°S–66°N.';
  document.querySelector('.privacy').textContent='No account or saved profile. Birth details are processed by Orbit’s server and are not saved as a profile. Place searches go to Open-Meteo; your name stays in the tab.';
- const sync=()=>{$('birth-place-fields').hidden=!$('use-natal').checked;};
+ const sync=()=>{$('birth-place-fields').hidden=!$('use-natal').checked;$('generate').textContent=$('use-natal').checked?'Reveal my birth chart & week ↗':'Reveal my week ↗';};
  $('use-natal').addEventListener('change',()=>{if($('use-natal').checked){$('birth-time-unknown').checked=false;$('birth-time').disabled=false;}sync();});
  $('birth-time').addEventListener('change',()=>{if($('birth-time').value){$('use-natal').checked=true;sync();}});
  $('birth-time-unknown').addEventListener('change',()=>{if($('birth-time-unknown').checked){$('use-natal').checked=false;sync();}});
@@ -26,7 +26,10 @@ export async function requestNatal(){
  const chart=await response.json();if(!response.ok)throw Error(chart.error||'Unable to calculate birth chart.');return chart;
 }
 export function renderNatal(week,sky){
- const chart=week.natal,section=node('section','');section.className='natal-card';section.append(node('h3','Your birth chart'),node('p',chart.system));
+ const chart=week.natal,section=node('section','');section.className='natal-card';
+ const label=node('div','YOUR BIRTH CHART / YOUR PERSONAL BLUEPRINT');label.className='eyebrow';section.append(label,node('h2','Your birth-chart reading'),node('p','Your personality, emotional needs and outward style—interpreted from the sky at your birth. This is a symbolic reading, separate from your weekly outlook.'));
+ const highlights=node('div','');highlights.className='birth-signs';
+ for(const [name,sign,meaning] of [['Sun',chart.planets.find(p=>p.name==='Sun').sign,'Your core identity'],['Moon',chart.planets.find(p=>p.name==='Moon').sign,'Your emotional world'],['Rising',chart.ascendant.sign,'How you meet the world']]){const card=node('article','');card.append(node('small',name),node('strong',sign),node('span',meaning));highlights.append(card);}section.append(highlights,node('p',chart.system));
  const portrait=explainNatal(chart);
  const intro=node('section','');intro.className='natal-personality';intro.setAttribute('aria-label',portrait.title);
  intro.append(node('h4',portrait.title),node('p',portrait.note),node('p',portrait.summary),node('p',portrait.synthesis));

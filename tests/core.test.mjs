@@ -16,9 +16,27 @@ test('weekly outlook offers sourced opportunities and cautions even in fallback 
  const outlook=weeklyOutlook(makeWeek('Aries',sky));
  assert.equal(outlook.opportunities.length,2);assert.equal(outlook.challenges.length,2);
  assert.ok(outlook.challenges.every(c=>c.avoid&&c.manage&&c.avoid!==c.manage));
- assert.equal(outlook.opportunities[0].title,'Reconnect with someone');
+ assert.notEqual(outlook.opportunities[0].title,'Reconnect with someone');
  assert.ok([...outlook.opportunities,...outlook.challenges].every(x=>x.text&&x.action&&x.reflection&&x.basis));
  assert.ok(outlook.opportunities.every(x=>x.basis.includes('unavailable')));assert.ok(outlook.note.includes('not reports or predictions'));
+});
+test('opportunities vary across all twelve signs and follow the sky, not random copy',()=>{
+ const sky={days:Array.from({length:7},(_,i)=>({date:`2026-10-${10+i}`,positions:[{name:'Sun',longitude:190},{name:'Moon',longitude:100+i*14},{name:'Mercury',longitude:220}]}))};
+ const results=signs.map(sign=>weeklyOutlook(makeWeek(sign,sky)).opportunities);
+ for(const field of ['title','text','action'])assert.equal(new Set(results.map(r=>r[0][field])).size,12);
+ for(const [i,items] of results.entries()){assert.equal(items.length,2);assert.notEqual(items[0].sector,items[1].sector);assert.ok(items.every(x=>x.basis.includes(`relative to ${signs[i]}`)));}
+ assert.deepEqual(results[0],weeklyOutlook(makeWeek('Aries',sky)).opportunities);
+ const moved={days:sky.days.map(d=>({...d,positions:d.positions.map(p=>({...p,longitude:p.longitude+30}))}))};
+ assert.notEqual(results[0][0].title,weeklyOutlook(makeWeek('Aries',moved)).opportunities[0].title);
+ assert.equal(weeklyOutlook(makeWeek('Aries',sky,'Work')).opportunities[0].planet,'Mercury');
+});
+test('supportive natal contacts take priority and repeated house themes are deduplicated',()=>{
+ const week=makeWeek('Aries',{days:[{date:'2026-10-10',positions:[{name:'Sun',longitude:190}]}]});
+ const transit={date:'2026-10-10',planet:'Moon',house:5,type:'trine',orb:1,title:'Moon trine natal Sun',basis:'Sampled position'};
+ week.days[0].transits=[transit,{...transit,orb:2},{...transit,type:'square',orb:0,house:11}];
+ const items=weeklyOutlook(week).opportunities;
+ assert.equal(items[0].sector,4);assert.match(items[0].basis,/Moon trine natal Sun/);
+ assert.equal(items.length,2);assert.notEqual(items[1].sector,4);
 });
 test('aspect angles wrap and honor the inclusive 3 degree tolerance',()=>{assert.equal(angularDistance(359,1),2);assert.equal(angularDistance(10,190),180);for(const [angle,type] of [[0,'conjunction'],[60,'sextile'],[90,'square'],[120,'trine'],[180,'opposition']])assert.equal(findAspects([{name:'A',longitude:0},{name:'B',longitude:angle}])[0].type,type);assert.equal(findAspects([{name:'A',longitude:359},{name:'B',longitude:2}]).length,1);assert.equal(findAspects([{name:'A',longitude:359},{name:'B',longitude:2.1}]).length,0);});
 test('richer week includes five categories, seven distinct daily narratives and auditable aspects',()=>{const sky={days:Array.from({length:7},(_,i)=>({date:`2026-10-${i+10}`,positions:[{name:'Sun',longitude:190},{name:'Moon',longitude:100+i*14},{name:'Venus',longitude:220},{name:'Mercury',longitude:221},{name:'Mars',longitude:123}]}))};const week=makeWeek('Libra',sky,'Love');assert.equal(week.categories.length,5);assert.equal(week.milestones.length,3);assert.equal(new Set(week.days.map(d=>d.detail)).size,7);assert.ok(week.highlights.some(a=>a.a==='Venus'&&a.b==='Mercury'));assert.ok(week.categories.every(c=>c.text.length>150&&c.basis.includes('relative to Libra')));assert.ok(week.days.every(d=>d.question&&d.watchFor&&d.detail));});

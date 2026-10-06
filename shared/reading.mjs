@@ -11,6 +11,30 @@ export function featureCopy(mode,day){
  }[mode];
  return {label:`${labels[mode].toUpperCase()} / ${day.date} / ${day.focus.toUpperCase()}`,title:mode==='reflective'?`Consider: ${day.title}`:mode==='prescriptive'?`Your next step: ${day.title}`:`Reflect & act: ${day.title}`,copy:mode==='reflective'?day.question:mode==='prescriptive'?day.tryThis:`${day.tryThis} Then reflect: ${day.question}`};
 }
+// Editorial possibilities keyed to calculated sectors, never promised events.
+const opportunityThemes=[
+ ['Start the idea you keep postponing','A small independent start could help you discover what you actually want to pursue.'],
+ ['Make better use of what you already have','Reviewing your time, tools or everyday spending could reveal room for a priority you value.'],
+ ['Get clarity on an unanswered question','A precise question or short learning session could turn confusion into a useful next step.'],
+ ['Make home work better for you','A small change to your space or a familiar routine could make everyday life feel more settled.'],
+ ['Give a creative idea a first draft','An unfinished idea could become something tangible if you allow a playful, imperfect attempt.'],
+ ['Free up time with a simpler routine','Removing one unnecessary step could make a recurring task easier to sustain.'],
+ ['Find a fairer way to work together','A clear invitation or discussion of needs could open up a more balanced one-to-one arrangement.'],
+ ['Clear up a shared commitment','Agreeing on expectations could make a joint task or responsibility easier to handle.'],
+ ['Discover an approach you have not tried','A different source, skill or perspective could offer an alternative to a familiar problem.'],
+ ['Turn a longer-term goal into visible progress','A small, defined milestone could give an important project a practical next step.'],
+ ['Build something with your community','A specific contribution to a group or a thoughtful check-in could strengthen a shared effort.'],
+ ['Make space to notice what matters','A quiet pause could help you recognize what to keep pursuing and what to set aside.']
+];
+function weeklyOpportunities(week){
+ const personal=week.days.flatMap(d=>d.transits||[]).filter(t=>['sextile','trine'].includes(t.type)).sort((a,b)=>a.orb-b.orb).map(t=>({sector:t.house-1,date:t.date,planet:t.planet,basis:`${t.date}: ${t.title}; whole-sign house ${t.house}. ${t.basis} Selected as a traditionally supportive aspect, not evidence of a future event.`}));
+ const preferred={'Work':'Mercury','Social relationships':'Venus','Growth':'Mars','Balance':'Sun'}[week.focus]||'Sun';
+ const general=[...(week.opportunityFactors||[])].sort((a,b)=>(a.planet===preferred?0:1)-(b.planet===preferred?0:1)||a.date.localeCompare(b.date));
+ const chosen=[];const seen=new Set();
+ for(const candidate of [...personal,...general]){if(seen.has(candidate.sector))continue;seen.add(candidate.sector);chosen.push(candidate);if(chosen.length===2)break;}
+ if(!chosen.length){const index=signs.indexOf(week.sign);for(const sector of [Math.max(index,0),(Math.max(index,0)+4)%12])chosen.push({sector,date:week.days[0].date,basis:`General ${week.sign||'sign-based'} editorial prompt; relevant sky data unavailable. This is not a calculated transit or a timed opportunity.`});}
+ return chosen.map(c=>{const [title,text]=opportunityThemes[c.sector];return {...c,title,text,action:practicalGuidance(c.sector).tryThis,reflection:areas[c.sector].question};});
+}
 export function weeklyOutlook(week){
  const prevention=[
  ['Pick one task before starting anything new.','Pause the other tasks and finish one small step.'],
@@ -27,7 +51,7 @@ export function weeklyOutlook(week){
  ['Schedule a short pause before your day fills up.','Reduce the next task to its essentials and give yourself time to reset.']
  ];
  return {
-  opportunities:week.categories.slice(0,2).map((c,i)=>({title:i===0?'Reconnect with someone':'Make progress on one priority',text:i===0?'A conversation or a small invitation could help you reconnect or clear up expectations.':'A clear next step could move a stalled task forward.',action:c.action,reflection:c.question,basis:c.basis})),
+  opportunities:weeklyOpportunities(week),
   challenges:[week.days[0],week.days[Math.floor(week.days.length/2)]].map(d=>{const index=areas.findIndex(a=>a.watch===d.watchFor);const [avoid,manage]=prevention[index<0?0:index];return {title:d.date,text:d.watchFor,avoid,manage,action:manage,reflection:d.question,basis:d.source};}),
   note:'Potential opportunities and practical heads-ups—not reports or predictions of good or bad events. Use what fits your actual situation.'
  };
@@ -108,7 +132,8 @@ export function makeWeek(sign,sky,focus='Balance'){
  const events=sky.days.flatMap(day=>findAspects(day.positions).map(a=>({...a,date:day.date})));
  const closest=new Map();for(const e of events){const key=e.a+e.type+e.b;if(!closest.has(key)||e.orb<closest.get(key).orb)closest.set(key,e);}
  const highlights=[...closest.values()].sort((a,b)=>a.orb-b.orb).slice(0,4);
- return {overview,categories,milestones,highlights,days,focus};
+ const opportunityFactors=sky.days.flatMap(day=>day.positions.filter(p=>['Sun','Moon','Mercury','Venus','Mars'].includes(p.name)&&Number.isFinite(p.longitude)).map(p=>({sector:(Math.floor(((p.longitude%360)+360)%360/30)-index+12)%12,date:day.date,planet:p.name,basis:`${day.date}: ${p.name} in ${zodiac(p.longitude)}; solar-sign sector ${(Math.floor(((p.longitude%360)+360)%360/30)-index+12)%12+1} relative to ${sign}. Selected from daily snapshots for an editorial opportunity prompt; not a natal house or prediction.`})));
+ return {overview,categories,milestones,highlights,days,focus,sign,opportunityFactors};
 }
 
 // Orbit's editorial interpretations are separate from astronomical calculations.

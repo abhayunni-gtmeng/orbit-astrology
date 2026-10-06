@@ -2,6 +2,7 @@ import {signs,symbols,elements,zodiac,makeReading,makeWeek,weeklyOutlook,feature
 import {setupBirthForm,requestNatal,renderNatal} from '/birth.mjs';
 import {personalizeWeek} from '/shared/transits.mjs';
 import {resultSources} from '/result-sources.mjs';
+import {relationshipReading} from '/shared/relationships.mjs';
 setupBirthForm();
 const $=id=>document.getElementById(id);let focus='Balance',reading=[],sky=null,active=0,week=null,viewMode='both';
 function el(tag,text,className){const node=document.createElement(tag);if(text)node.textContent=text;if(className)node.className=className;return node;}
@@ -16,6 +17,7 @@ function renderBirthReading(){
 }
 renderBirthReading();
 const leadingOutlook=el('section');leadingOutlook.id='leading-outlook';leadingOutlook.hidden=true;birthReading.before(leadingOutlook);
+const relationshipPanel=el('section',null,'relationship-panel');relationshipPanel.id='relationships';leadingOutlook.after(relationshipPanel);let relationshipMode='single';renderRelationships();
 const allSignsPanel=el('section');allSignsPanel.id='all-signs';document.querySelector('main').prepend(allSignsPanel);
 const initialAllSigns=el('details',null,'all-signs-panel');initialAllSigns.append(el('summary','All 12 signs this week · reveal good news & bad news'));
 const allSignsStatus=el('p','Open to compare this week for every sign. No birth details needed.','all-signs-note');allSignsStatus.setAttribute('role','status');initialAllSigns.append(allSignsStatus);allSignsPanel.append(initialAllSigns);
@@ -65,11 +67,27 @@ function renderAllSigns(comparisonSky=sky,comparisonWeek=week){
   card.append(opportunity,warning,basis);grid.append(card);
  });panel.append(grid);return panel;
 }
+function renderRelationships(){
+ relationshipPanel.replaceChildren(el('h2','Your relationships this week'),el('p','A reading for you—not a compatibility test. No partner’s birth details needed.'));
+ const label=el('label','Where are you right now?');label.htmlFor='relationship-mode';const select=el('select');select.id='relationship-mode';
+ for(const [value,title] of [['single','Single'],['situationship','Situationship']]){const option=el('option',title);option.value=value;select.append(option);}select.value=relationshipMode;
+ select.addEventListener('change',()=>{relationshipMode=select.value;renderRelationships();document.getElementById('relationship-mode').focus();});relationshipPanel.append(label,select);
+ if(!week){relationshipPanel.append(el('p','Choose your sign and reveal your week to generate this reading. Add birth details for personal chart factors.','field-note'));return;}
+ const result=relationshipReading(week,relationshipMode);relationshipPanel.append(el('p',result.note,'field-note'));
+ const grid=el('div',null,'relationship-grid');
+ for(const [key,title] of [['good','Good news'],['bad','Bad news']]){
+  const item=result[key],card=el('details',null,'relationship-'+key);card.open=false;card.append(el('summary',title+' · reveal prediction'),el('h3',item.title));
+  if(key==='good')card.append(el('strong','Make the most of it'),el('p',item.action));
+  else card.append(el('strong','Avoid it'),el('p',item.avoid),el('strong','Manage it if it happens'),el('p',item.manage));
+  const basis=el('details');basis.append(el('summary','What informs this reading?'),el('p',item.basis),resultSources(sky,item.date));card.append(basis);grid.append(card);
+ }relationshipPanel.append(grid);
+}
 function renderLifeSections(){
  const categories=el('section',null,'life-sections');categories.setAttribute('aria-label','Your life this week');categories.append(el('h3','Your life this week'));const grid=el('div',null,'category-grid');const order=['Social','Growth','Personal','Work & money','Energy & wellbeing'];for(const title of order){const item=week.categories.find(c=>c.title===title);if(!item)continue;const card=el('article',null,'category-card');card.append(el('h4',item.title,'life-section-title'),el('p',item.headline,'life-section-theme'),el('p',item.text,'reflective-content'),el('strong','Put it into practice','prescriptive-content'),el('p',item.action,'prescriptive-content'),el('strong','Reflect on it','reflective-content'),el('p',item.question,'reflective-content'),el('strong','Keep in mind'),el('p',item.caution));const details=el('details');details.append(el('summary','Why this theme?'),el('p',item.basis));card.append(details,resultSources(sky,item.basis.match(/^\d{4}-\d{2}-\d{2}/)?.[0]||week.days[0].date));grid.append(card);}categories.append(grid);return categories;
 }
 function renderWeek(){
  renderBirthReading();leadingOutlook.replaceChildren(renderOutlook());leadingOutlook.hidden=false;weekly.replaceChildren();weekly.hidden=false;weekly.append(renderLifeSections());
+ renderRelationships();
  allSignsPanel.replaceChildren(renderAllSigns());allSignsPanel.hidden=false;
  const scene=el('figure',null,'situation-figure');const illustration=el('img');illustration.src='/situations-v1.png';illustration.alt='AI illustration of journaling, friends talking over tea, and creative planning.';illustration.loading='lazy';scene.append(illustration,el('figcaption','Illustrated possibilities: reflection, connection and creative action. AI-generated artwork—not a prediction of events.'));weekly.append(scene);
  weekly.append(el('h3','The bigger picture'),el('p',week.overview,'weekly-overview reflective-content'));

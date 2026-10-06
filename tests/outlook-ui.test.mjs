@@ -3,8 +3,21 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {signs,symbols,makeWeek,weeklyOutlook} from '../shared/reading.mjs';
+import {relationshipReading} from '../shared/relationships.mjs';
 
 const source=readFileSync(new URL('../public/app.mjs',import.meta.url),'utf8');
+test('relationship status changes copy and resets both reveals',()=>{
+ const el=(tag,text,className)=>({tag,textContent:text,className,children:[],append(...children){this.children.push(...children);},replaceChildren(...children){this.children=children;},addEventListener(event,fn){this[event]=fn;}});
+ const sky={days:[{date:'2026-10-06',positions:[{name:'Venus',longitude:220}]}]},week=makeWeek('Aries',sky),relationshipPanel=el('section');
+ const context=vm.createContext({el,sky,week,relationshipPanel,relationshipReading,relationshipMode:'single',resultSources:()=>el('details'),document:{getElementById:()=>({focus(){}})}});
+ vm.runInContext(source.slice(source.indexOf('function renderRelationships(){'),source.indexOf('function renderLifeSections(){')),context);
+ vm.runInContext('renderRelationships()',context);
+ const cards=relationshipPanel.children.at(-1).children;assert.ok(cards.every(c=>c.open===false));
+ const oldTitle=cards[0].children[1].textContent;cards[0].open=true;
+ const select=relationshipPanel.children.find(c=>c.tag==='select');select.value='situationship';select.change();
+ const changed=relationshipPanel.children.at(-1).children;assert.ok(changed.every(c=>c.open===false));assert.notEqual(changed[0].children[1].textContent,oldTitle);
+ context.week=null;vm.runInContext('renderRelationships()',context);assert.match(relationshipPanel.children.at(-1).textContent,/reveal your week/);
+});
 test('all-signs panel compares twelve general readings and resets closed',()=>{
  const el=(tag,text,className)=>({tag,textContent:text,className,children:[],attrs:{},append(...children){this.children.push(...children);},setAttribute(k,v){this.attrs[k]=v;}});
  const sky={days:Array.from({length:7},(_,i)=>({date:`2026-10-${10+i}`,positions:[{name:'Sun',longitude:190},{name:'Moon',longitude:100+i*14}]}))};

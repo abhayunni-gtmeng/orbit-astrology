@@ -15,6 +15,7 @@ function renderBirthReading(){
  intro.append(button,el('p','Add your birth date, exact time and birthplace, then reveal your chart. No birth time? You can still explore your sun-sign week.','field-note'));birthReading.append(intro);
 }
 renderBirthReading();
+const leadingOutlook=el('section');leadingOutlook.id='leading-outlook';leadingOutlook.hidden=true;birthReading.before(leadingOutlook);
 const weekly=document.createElement('section');weekly.id='weekly-detail';weekly.hidden=true;document.querySelector('.feature').after(weekly);
 const dayDetail=document.createElement('section');dayDetail.id='day-detail';dayDetail.hidden=true;$('daily').after(dayDetail);
 function renderFeature(){
@@ -41,7 +42,7 @@ function renderLifeSections(){
  const categories=el('section',null,'life-sections');categories.setAttribute('aria-label','Your life this week');categories.append(el('h3','Your life this week'));const grid=el('div',null,'category-grid');const order=['Social','Growth','Personal','Work & money','Energy & wellbeing'];for(const title of order){const item=week.categories.find(c=>c.title===title);if(!item)continue;const card=el('article',null,'category-card');card.append(el('h4',item.title,'life-section-title'),el('p',item.headline,'life-section-theme'),el('p',item.text,'reflective-content'),el('strong','Put it into practice','prescriptive-content'),el('p',item.action,'prescriptive-content'),el('strong','Reflect on it','reflective-content'),el('p',item.question,'reflective-content'),el('strong','Keep in mind'),el('p',item.caution));const details=el('details');details.append(el('summary','Why this theme?'),el('p',item.basis));card.append(details,resultSources(sky,item.basis.match(/^\d{4}-\d{2}-\d{2}/)?.[0]||week.days[0].date));grid.append(card);}categories.append(grid);return categories;
 }
 function renderWeek(){
- renderBirthReading();weekly.replaceChildren();weekly.hidden=false;weekly.append(renderOutlook(),renderLifeSections());
+ renderBirthReading();leadingOutlook.replaceChildren(renderOutlook());leadingOutlook.hidden=false;weekly.replaceChildren();weekly.hidden=false;weekly.append(renderLifeSections());
  const scene=el('figure',null,'situation-figure');const illustration=el('img');illustration.src='/situations-v1.png';illustration.alt='AI illustration of journaling, friends talking over tea, and creative planning.';illustration.loading='lazy';scene.append(illustration,el('figcaption','Illustrated possibilities: reflection, connection and creative action. AI-generated artwork—not a prediction of events.'));weekly.append(scene);
  weekly.append(el('h3','The bigger picture'),el('p',week.overview,'weekly-overview reflective-content'));
  const arc=el('div',null,'week-arc');for(const item of week.milestones){const box=el('article');box.append(el('span',item.label,'eyebrow'),el('small',fmt(item.day.date,{weekday:'short',month:'short',day:'numeric'})),el('h4',item.day.title),el('p',item.day.tryThis,'prescriptive-content'),el('p',item.day.question,'reflective-content'));arc.append(box);}weekly.append(arc);

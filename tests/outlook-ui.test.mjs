@@ -20,6 +20,9 @@ test('birth chart has a dedicated leading section and resets without natal data'
  assert.ok(!source.includes('weekly.append(renderNatal'));
 });
 test('reading mode selector is removed',()=>{
+ assert.ok(source.includes('birthReading.before(leadingOutlook)'));
+ assert.ok(source.includes('leadingOutlook.replaceChildren(renderOutlook())'));
+ assert.ok(!source.includes('weekly.append(renderOutlook()'));
  assert.ok(!source.includes('modeBar'));
  assert.ok(!source.includes('mode-description'));
 });

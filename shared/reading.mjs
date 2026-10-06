@@ -165,6 +165,20 @@ const natalRoles={
  Pluto:['Depth & transformation','Pluto symbolizes themes of power, letting go and deep renewal.','Your approach to deep change may be']
 };
 const natalHouseThemes=['self-expression and first impressions','personal resources and values','learning and everyday communication','home, roots and private life','creativity, play and self-expression','daily routines, service and wellbeing','one-to-one relationships and partnership','shared resources, trust and vulnerability','study, exploration and worldview','public contribution and long-term direction','friendships, communities and shared hopes','solitude, rest and inner reflection'];
+const portraitOpenings={
+ Aries:'You tend to be direct, spirited and willing to make the first move. Having something to pursue can bring out your courage, though waiting for others may test your patience.',
+ Taurus:'You tend to be steady, affectionate and drawn to the things that make life feel comfortable and real. You give things time to grow, although letting go of a familiar situation can be difficult.',
+ Gemini:'You tend to be curious, quick-thinking and interested in people and their stories. You enjoy fresh ideas and variety, though having so many possibilities can make it hard to settle on one.',
+ Cancer:'You tend to be caring, sensitive and protective of the people close to you. Familiar places and small signs of thoughtfulness can mean a lot, and you may need time to open up when you feel unsure.',
+ Leo:'You tend to be warm, expressive and generous with your encouragement. There is a playful, creative side to you that wants room to shine, though feeling overlooked can hurt more than you show.',
+ Virgo:'You tend to be thoughtful, observant and good at noticing what could be made better. You often show care through practical help, but can be harder on yourself than the situation deserves.',
+ Libra:'You tend to be considerate, sociable and drawn to balance and harmony. You can see several sides of a situation, which helps you understand people but can make decisions difficult when someone might be disappointed.',
+ Scorpio:'You tend to be intense, perceptive and selective about who gets close. You value honesty and depth, and may keep a private inner world that only trusted people get to see.',
+ Sagittarius:'You tend to be open, enthusiastic and interested in what lies beyond the familiar. Learning and new experiences can lift your spirits, though excitement may sometimes run ahead of what you can follow through on.',
+ Capricorn:'You tend to be responsible, patient and serious about the things that matter to you. You prefer to build something dependable, but may forget to give yourself credit while concentrating on what still needs doing.',
+ Aquarius:'You tend to be independent, original and comfortable questioning the usual way of doing things. You enjoy fresh ideas and shared causes, though explaining a feeling may be less comfortable than exploring an idea.',
+ Pisces:'You tend to be sensitive, kind and imaginative, easily moved by the atmosphere around you. A creative or dreamy side can give ordinary experiences depth, though caring for others can sometimes leave too little space for yourself.'
+};
 export function explainNatal(chart){
  if(!chart)return null;
  const points=[...chart.planets,{name:'Rising',...chart.ascendant}];
@@ -176,7 +190,12 @@ export function explainNatal(chart){
  });
  const sun=placements.find(p=>p.name==='Sun'),moon=placements.find(p=>p.name==='Moon'),rising=placements.find(p=>p.name==='Rising');
  const s=natalStyles[sun.sign],m=natalStyles[moon.sign],r=natalStyles[rising.sign];
- const summary=`Your ${sun.sign} Sun suggests a core style that is ${s.style}. Your ${moon.sign} Moon adds an emotional need for ${m.need}. With ${rising.sign} rising, you may meet new situations in a way that feels ${r.style}.`;
+ const inner=`${portraitOpenings[sun.sign]} Underneath, you need ${m.need}. ${rising.sign===sun.sign?'People often see that same side of you straight away':`From the outside, you can seem ${r.style}`}. ${rising.sign===moon.sign?'The way you come across may make your emotional needs easier to see.':'That first impression may not show everything you feel or need in private.'}`;
+ const styleOf=name=>{const p=placements.find(p=>p.name===name);return p?natalStyles[p.sign]:null;};
+ const venus=styleOf('Venus'),mercury=styleOf('Mercury'),mars=styleOf('Mars'),saturn=styleOf('Saturn');
+ const relationships=venus?`With people you care about, you can be ${venus.style}. You value ${venus.need}, and often bring ${venus.strength} to a relationship. The balance to watch is ${venus.edge}; caring about someone does not mean putting your own needs aside.`:'';
+ const thinking=mercury?`Your mind works in a way that is ${mercury.style}. ${mars?`When something matters to you, you draw on ${mars.strength} to move it forward. `:''}${saturn?`Taking responsibility can bring out ${saturn.strength}, but it helps to notice when you are ${saturn.edge}. `:''}Giving yourself room to learn, rather than expecting to have everything worked out, can help those strengths develop.`:'';
+ const summary=[inner,relationships,thinking].filter(Boolean).join('\n\n');
  const synthesis=sun.sign===moon.sign&&moon.sign===rising.sign?`All three share ${sun.sign}, emphasizing a similar symbolic style across identity, emotional needs and outward approach. The other placements add different shades to this picture.`:`These parts can express themselves differently: the first impression you make may differ from what helps you feel secure or what gives you purpose. Read them together, and notice which descriptions fit your actual experience.`;
  return {title:'Your personality, through your chart',note:'An astrological portrait for reflection, not a scientifically validated personality assessment. These are possibilities to explore, not fixed traits.',summary,synthesis,guide:'A birth chart is a snapshot of the sky at your birth. Planets describe symbolic themes, signs describe how those themes may be expressed, and houses describe areas of life. Orbit uses the tropical zodiac and whole-sign houses, with the rising sign as the first house.',bigThree:[sun,moon,rising],placements:placements.filter(p=>!['Sun','Moon','Rising'].includes(p.name)),question:`Where does ${s.strength} show up in your life, and what helps you make room for ${m.need}?`};
 }

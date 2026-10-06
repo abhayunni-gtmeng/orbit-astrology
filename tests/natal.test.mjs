@@ -52,6 +52,12 @@ test('personal contacts use natal points, exact 3 degree orb and graceful unavai
 import {explainNatal,natalExplanationText} from '../shared/reading.mjs';
 test('personality follows calculated placements and remains separate from weekly data',()=>{
  const chart=calculateNatal(input),portrait=explainNatal(chart);
+ assert.equal(portrait.summary.split('\n\n').length,3);
+ assert.ok(!/Sun|Moon|Mercury|Venus|whole-sign/.test(portrait.summary));
+ for(const name of ['Sun','Moon','Mercury','Venus','Mars','Saturn']){
+  const changed={...chart,planets:chart.planets.map(p=>p.name===name?{...p,sign:p.sign==='Aries'?'Pisces':'Aries'}:p)};
+  assert.notEqual(explainNatal(changed).summary,portrait.summary,`${name} must influence the portrait`);
+ }
  assert.equal(portrait.bigThree[0].sign,chart.planets.find(p=>p.name==='Sun').sign);
  assert.equal(portrait.bigThree[1].sign,chart.planets.find(p=>p.name==='Moon').sign);
  assert.equal(portrait.bigThree[2].sign,chart.ascendant.sign);

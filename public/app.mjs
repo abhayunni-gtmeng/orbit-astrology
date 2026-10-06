@@ -16,6 +16,7 @@ function renderBirthReading(){
 }
 renderBirthReading();
 const leadingOutlook=el('section');leadingOutlook.id='leading-outlook';leadingOutlook.hidden=true;birthReading.before(leadingOutlook);
+const allSignsPanel=el('section');allSignsPanel.id='all-signs';allSignsPanel.hidden=true;leadingOutlook.after(allSignsPanel);
 const weekly=document.createElement('section');weekly.id='weekly-detail';weekly.hidden=true;document.querySelector('.feature').after(weekly);
 const dayDetail=document.createElement('section');dayDetail.id='day-detail';dayDetail.hidden=true;$('daily').after(dayDetail);
 function renderFeature(){
@@ -38,11 +39,28 @@ function renderOutlook(){
   grid.append(card);
  }section.append(grid);return section;
 }
+function renderAllSigns(){
+ const panel=el('details',null,'all-signs-panel');panel.open=false;
+ panel.append(el('summary','All 12 signs this week · reveal opportunities & heads-ups'));
+ panel.append(el('p',`${fmt(week.days[0].date,{month:'short',day:'numeric'})} – ${fmt(week.days.at(-1).date,{month:'short',day:'numeric'})} · Focus: ${week.focus}. General sun-sign readings using the same weekly sky snapshots—not anyone’s personal birth chart. These are symbolic possibilities, not predictions.`,'all-signs-note'));
+ if(sky.status==='unavailable'||!sky.days.some(d=>d.positions.length))panel.append(el('p','Live sky data is unavailable. These are general editorial prompts, not transit-based readings.','all-signs-note'));
+ const grid=el('div',null,'all-signs-grid');
+ signs.forEach((sign,i)=>{
+  const overview=weeklyOutlook(makeWeek(sign,sky,week.focus));const good=overview.opportunities[0],caution=overview.challenges[0];
+  const card=el('article',null,'all-sign-card');card.setAttribute('aria-label',sign+' weekly overview');
+  card.append(el('h3',`${symbols[i]} ${sign}${sign===week.sign?' · Your sign':''}`));
+  const opportunity=el('div',null,'all-sign-opportunity');opportunity.append(el('span','OPPORTUNITY','all-sign-label'),el('h4',good.title),el('p',good.text),el('strong','Try this'),el('p',good.action));
+  const warning=el('div',null,'all-sign-warning');warning.append(el('span','HEADS-UP','all-sign-label'),el('h4',caution.title),el('p',caution.text),el('strong','Avoid it'),el('p',caution.avoid),el('strong','If it happens'),el('p',caution.manage));
+  const basis=el('details',null,'all-sign-basis');basis.append(el('summary','Why these themes?'),el('p',good.basis),resultSources(sky,good.date),el('p',caution.basis),resultSources(sky,caution.date));
+  card.append(opportunity,warning,basis);grid.append(card);
+ });panel.append(grid);return panel;
+}
 function renderLifeSections(){
  const categories=el('section',null,'life-sections');categories.setAttribute('aria-label','Your life this week');categories.append(el('h3','Your life this week'));const grid=el('div',null,'category-grid');const order=['Social','Growth','Personal','Work & money','Energy & wellbeing'];for(const title of order){const item=week.categories.find(c=>c.title===title);if(!item)continue;const card=el('article',null,'category-card');card.append(el('h4',item.title,'life-section-title'),el('p',item.headline,'life-section-theme'),el('p',item.text,'reflective-content'),el('strong','Put it into practice','prescriptive-content'),el('p',item.action,'prescriptive-content'),el('strong','Reflect on it','reflective-content'),el('p',item.question,'reflective-content'),el('strong','Keep in mind'),el('p',item.caution));const details=el('details');details.append(el('summary','Why this theme?'),el('p',item.basis));card.append(details,resultSources(sky,item.basis.match(/^\d{4}-\d{2}-\d{2}/)?.[0]||week.days[0].date));grid.append(card);}categories.append(grid);return categories;
 }
 function renderWeek(){
  renderBirthReading();leadingOutlook.replaceChildren(renderOutlook());leadingOutlook.hidden=false;weekly.replaceChildren();weekly.hidden=false;weekly.append(renderLifeSections());
+ allSignsPanel.replaceChildren(renderAllSigns());allSignsPanel.hidden=false;
  const scene=el('figure',null,'situation-figure');const illustration=el('img');illustration.src='/situations-v1.png';illustration.alt='AI illustration of journaling, friends talking over tea, and creative planning.';illustration.loading='lazy';scene.append(illustration,el('figcaption','Illustrated possibilities: reflection, connection and creative action. AI-generated artwork—not a prediction of events.'));weekly.append(scene);
  weekly.append(el('h3','The bigger picture'),el('p',week.overview,'weekly-overview reflective-content'));
  const arc=el('div',null,'week-arc');for(const item of week.milestones){const box=el('article');box.append(el('span',item.label,'eyebrow'),el('small',fmt(item.day.date,{weekday:'short',month:'short',day:'numeric'})),el('h4',item.day.title),el('p',item.day.tryThis,'prescriptive-content'),el('p',item.day.question,'reflective-content'));arc.append(box);}weekly.append(arc);

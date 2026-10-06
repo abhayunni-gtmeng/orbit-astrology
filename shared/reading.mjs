@@ -13,18 +13,32 @@ export function featureCopy(mode,day){
 }
 // Editorial possibilities keyed to calculated sectors, never promised events.
 const opportunityThemes=[
- ['Start the idea you keep postponing','A small independent start could help you discover what you actually want to pursue.'],
- ['Make better use of what you already have','Reviewing your time, tools or everyday spending could reveal room for a priority you value.'],
- ['Get clarity on an unanswered question','A precise question or short learning session could turn confusion into a useful next step.'],
- ['Make home work better for you','A small change to your space or a familiar routine could make everyday life feel more settled.'],
- ['Give a creative idea a first draft','An unfinished idea could become something tangible if you allow a playful, imperfect attempt.'],
- ['Free up time with a simpler routine','Removing one unnecessary step could make a recurring task easier to sustain.'],
- ['Find a fairer way to work together','A clear invitation or discussion of needs could open up a more balanced one-to-one arrangement.'],
- ['Clear up a shared commitment','Agreeing on expectations could make a joint task or responsibility easier to handle.'],
- ['Discover an approach you have not tried','A different source, skill or perspective could offer an alternative to a familiar problem.'],
- ['Turn a longer-term goal into visible progress','A small, defined milestone could give an important project a practical next step.'],
- ['Build something with your community','A specific contribution to a group or a thoughtful check-in could strengthen a shared effort.'],
- ['Make space to notice what matters','A quiet pause could help you recognize what to keep pursuing and what to set aside.']
+ ['Stop waiting for permission to begin','That idea you keep postponing could finally become a real experiment. Take the smallest step you control, rather than waiting for someone else to make the opening.'],
+ ['Reclaim time for what you actually want','An overlooked commitment may be taking more than it gives. Reviewing where your time and resources go could free up room for a priority you keep putting last.'],
+ ['One clear question could break the deadlock','If a task or conversation has stalled, the missing piece may be clarity rather than more effort. Ask the question everyone seems to be working around.'],
+ ['Turn home into a place you can exhale','A small change to your space or a clearer household agreement could remove a daily source of friction. Start with the thing that repeatedly gets in your way.'],
+ ['Get your idea out of the drafts folder','Something you have been imagining could become a first version worth building on. Give it a short, protected stretch of time without demanding a polished result.'],
+ ['Win back a part of your day','One recurring task may be more complicated than it needs to be. Drop an unnecessary step and use the breathing room for something that supports you.'],
+ ['Ask for the arrangement you actually need','A one-to-one partnership could become more balanced if you make a specific request. Say what would work for you, while leaving space for the other person to respond.'],
+ ['Replace an awkward assumption with a clear agreement','A shared task could feel lighter once everyone knows what they are responsible for. Put the expectations into words before doing another round of guesswork.'],
+ ['A different approach could reopen a stuck problem','You may not need to push harder on the same solution. A new source, short lesson or unfamiliar perspective could give you something practical to try.'],
+ ['Give your effort a result you can point to','A longer-term goal could gain traction through one small finished deliverable. Define what done looks like, then protect enough time to reach it.'],
+ ['Turn a shared interest into a shared effort','A group idea could move beyond conversation if you offer one concrete contribution. Ask who wants to join in, rather than taking the whole project on yourself.'],
+ ['Create enough quiet to hear your own answer','Stepping away from constant input could help you recognize what matters and what no longer deserves your attention. Leave one pocket of time unfilled.']
+];
+const challengeThemes=[
+ ['Too many fresh starts could stall your progress','The risk is chasing the next exciting idea before the current one has a chance to work. Activity can feel like momentum even when nothing is getting finished.'],
+ ['A quick want could crowd out a real priority','Something appealing may compete with the time or resources you meant to protect. Pause before treating a passing urge as something you need to act on.'],
+ ['A rushed reply could create avoidable friction','You could answer the assumption in your head rather than the question someone actually asked. One extra moment of listening may save a longer clarification later.'],
+ ['A quick yes could become a heavy obligation','Agreeing to keep someone comfortable can leave your own needs squeezed out. Check what a request really involves before making space for it.'],
+ ['Perfectionism could keep a good idea invisible','If every creative attempt has to impress someone, you may stop before you have something to develop. Watch for editing an idea out of existence.'],
+ ['Your to-do list could take over your day','Treating every task as equally urgent can leave no room to recover or adjust. Being busy is not the same as giving the important things enough attention.'],
+ ['Keeping the peace could hide a real disagreement','Saying everything is fine when it is not can make a shared plan feel unfair. A small, clear request is easier to work with than resentment that stays unspoken.'],
+ ['Guessing intentions could undermine trust','A gap in information can turn into a convincing story about what someone meant. Check the facts before reacting to an interpretation.'],
+ ['The next big plan could become another detour','Exploring alternatives is useful until it replaces taking a practical step. Notice when more research is helping you avoid the uncomfortable part of starting.'],
+ ['You could take ownership of what you cannot control','A shared outcome may depend on decisions that are not yours to make. Carrying all the responsibility can obscure the one part you can actually move forward.'],
+ ['Being available to everyone could leave no room for you','Too many invitations or group commitments can turn connection into obligation. Watch for accepting another role before checking your capacity.'],
+ ['Pushing through could make a simple task feel harder','Ignoring your need for a pause can turn unfinished work into self-criticism. A temporary reset may be more useful than another round of forcing progress.']
 ];
 function weeklyOpportunities(week){
  const personal=week.days.flatMap(d=>d.transits||[]).filter(t=>['sextile','trine'].includes(t.type)).sort((a,b)=>a.orb-b.orb).map(t=>({sector:t.house-1,date:t.date,planet:t.planet,basis:`${t.date}: ${t.title}; whole-sign house ${t.house}. ${t.basis} Selected as a traditionally supportive aspect, not evidence of a future event.`}));
@@ -52,7 +66,7 @@ export function weeklyOutlook(week){
  ];
  return {
   opportunities:weeklyOpportunities(week),
-  challenges:[week.days[0],week.days[Math.floor(week.days.length/2)]].map(d=>{const index=areas.findIndex(a=>a.watch===d.watchFor);const [avoid,manage]=prevention[index<0?0:index];return {title:d.date,text:d.watchFor,avoid,manage,action:manage,reflection:d.question,basis:d.source};}),
+  challenges:[week.days[0],week.days[Math.floor(week.days.length/2)]].map(d=>{const index=areas.findIndex(a=>a.watch===d.watchFor);const sector=index<0?0:index;const [avoid,manage]=prevention[sector];const [title,text]=challengeThemes[sector];return {title,date:d.date,sector,text,avoid,manage,action:manage,reflection:areas[sector].question,basis:`${d.date}: ${d.source} Editorial caution, not a predicted event.`};}).filter((item,i,items)=>items.findIndex(x=>x.sector===item.sector)===i),
   note:'Potential opportunities and practical heads-ups—not reports or predictions of good or bad events. Use what fits your actual situation.'
  };
 }

@@ -23,11 +23,17 @@ test('weekly outlook offers sourced opportunities and cautions even in fallback 
 test('opportunities vary across all twelve signs and follow the sky, not random copy',()=>{
  const sky={days:Array.from({length:7},(_,i)=>({date:`2026-10-${10+i}`,positions:[{name:'Sun',longitude:190},{name:'Moon',longitude:100+i*14},{name:'Mercury',longitude:220}]}))};
  const results=signs.map(sign=>weeklyOutlook(makeWeek(sign,sky)).opportunities);
+ const cautions=signs.map(sign=>weeklyOutlook(makeWeek(sign,sky)).challenges);
+ for(const field of ['title','text','avoid','manage'])assert.equal(new Set(cautions.map(r=>r[0][field])).size,12,`Distinct caution ${field} for all signs`);
+ for(const [i,items] of cautions.entries())assert.ok(items.every(x=>x.date&&x.basis.includes(`relative to ${signs[i]}`)&&!/^\d{4}-/.test(x.title)));
  for(const field of ['title','text','action'])assert.equal(new Set(results.map(r=>r[0][field])).size,12);
  for(const [i,items] of results.entries()){assert.equal(items.length,2);assert.notEqual(items[0].sector,items[1].sector);assert.ok(items.every(x=>x.basis.includes(`relative to ${signs[i]}`)));}
  assert.deepEqual(results[0],weeklyOutlook(makeWeek('Aries',sky)).opportunities);
  const moved={days:sky.days.map(d=>({...d,positions:d.positions.map(p=>({...p,longitude:p.longitude+30}))}))};
  assert.notEqual(results[0][0].title,weeklyOutlook(makeWeek('Aries',moved)).opportunities[0].title);
+ assert.notEqual(cautions[0][0].title,weeklyOutlook(makeWeek('Aries',moved)).challenges[0].title);
+ const stationary={days:sky.days.map(d=>({...d,positions:sky.days[0].positions}))};
+ assert.equal(weeklyOutlook(makeWeek('Aries',stationary)).challenges.length,1,'Do not repeat an identical caution');
  assert.equal(weeklyOutlook(makeWeek('Aries',sky,'Work')).opportunities[0].planet,'Mercury');
 });
 test('supportive natal contacts take priority and repeated house themes are deduplicated',()=>{
